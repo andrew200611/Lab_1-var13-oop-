@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Calculator.g4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Antlr4 Include="Calculator.g4">
+      <GenerateVisitor>true</GenerateVisitor>
+      <Antlr4GenerateCodeAsPartial>true</Antlr4GenerateCodeAsPartial>
+    </Antlr4>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+    <PackageReference Include="Antlr4BuildTasks" Version="12.11.0" />
+  </ItemGroup>
+
+</Project>
