@@ -35,7 +35,10 @@ namespace CalculatorLogic
             }
         }
 
-
+        public void Refresh()
+        {
+            CalculateValue();
+        }
         private void CalculateValue()
         {
             try
@@ -47,49 +50,21 @@ namespace CalculatorLogic
                     return;
                 }
 
+               
+                Value = calculator.Calculate(expression, Id);
 
-                if (ContainsSelfReference(expression))
-                {
-                    throw new ArgumentException("Посилаємось самі на себе");
-                }
-
-
-                Value = calculator.Calculate(expression);
                 HasError = false;
-            }
-            catch (DivideByZeroException ex)
-            {
-                HasError = true;
-                Value = 0;
-
-            }
-            catch (ArgumentException ex)
-            {
-                HasError = true;
-                Value = 0;
-
-            }
-            catch (Exception ex)
-            {
-                HasError = true;
-                Value = 0;
-
-            }
-        }
-
-
-        private bool ContainsSelfReference(string expr)
-        {
-            try
-            {
-
-                return expr.Contains(Id);
             }
             catch
             {
-                return false;
+               
+                HasError = true;
+                Value = 0;
             }
         }
+
+
+       
         public Cell(string cellId, SimpleCalculator calc)
         {
             Id = cellId;

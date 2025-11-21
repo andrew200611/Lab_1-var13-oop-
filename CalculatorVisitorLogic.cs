@@ -17,7 +17,7 @@ namespace CalculatorLogic
         {
             return Visit(context.operand());
         }
-
+        
 
         public override double VisitCellOperand([NotNull] CalculatorParser.CellOperandContext context)
         {

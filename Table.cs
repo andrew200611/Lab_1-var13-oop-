@@ -8,7 +8,7 @@ namespace CalculatorLogic
 {
     public class Table
     {
-
+        
         private Cell[,] cells;
         private int rows;
         private int columns;
@@ -93,6 +93,39 @@ namespace CalculatorLogic
             }
             cells = newCells;
         }
+        public void DeleteColumn()
+        {
+            if (columns <= 1) return; 
+
+            columns--;
+            Cell[,] newCells = new Cell[rows, columns];
+
+            for (int row = 0; row < rows; row++)
+            {
+                for (int col = 0; col < columns; col++)
+                {
+                    newCells[row, col] = cells[row, col];
+                }
+            }
+            cells = newCells;
+        }
+
+        public void DeleteRow()
+        {
+            if (rows <= 1) return;
+
+            rows--;
+            Cell[,] newCells = new Cell[rows, columns];
+
+            for (int row = 0; row < rows; row++)
+            {
+                for (int col = 0; col < columns; col++)
+                {
+                    newCells[row, col] = cells[row, col];
+                }
+            }
+            cells = newCells;
+        }
         public void CreateAllCells()
         {
             for (int row = 0; row < rows; row++)
@@ -103,7 +136,16 @@ namespace CalculatorLogic
                 }
 
         }
-
+        public void RecalculateAll()
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < columns; c++)
+                {
+                    cells[r, c].Refresh();
+                }
+            }
+        }
 
     }
 }

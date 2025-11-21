@@ -1,74 +1,121 @@
-﻿using System;
+﻿using Antlr4.Runtime;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Antlr4.Runtime;
 
-namespace CalculatorLogic
+namespace CalculatorLogic;
+
+public class SimpleCalculator
 {
-    public class SimpleCalculator
+    private Table table;
+
+    public SimpleCalculator(Table table)
     {
-        private Table table;
+        this.table = table;
+    }
 
-        public SimpleCalculator(Table table)
+    
+    public double Calculate(string expression, string currentCellId)
+    {
+        try
         {
-            this.table = table;
+            if (string.IsNullOrWhiteSpace(expression)) return 0;
+
+           
+            var visited = new HashSet<string> { currentCellId };
+           
+            CheckLoop(expression, visited);
+
+           
+            return EvaluateExpression(expression);
         }
-
-        public double Calculate(string expression)
+        catch (Exception)
         {
-            try
-            {
-
-                if (string.IsNullOrWhiteSpace(expression))
-                    return 0;
-
-
-
-
-                return EvaluateExpression(expression);
-            }
-
-            catch (Exception ex)
-            {
-                throw new ArgumentException("Помилка обчислення");
-            }
+           
+            throw new ArgumentException("Помилка обчислення");
         }
+    }
 
-        public double EvaluateExpression(string expression)
+    
+    private void CheckLoop(string expression, HashSet<string> visited)
+    {
+        if (string.IsNullOrWhiteSpace(expression)) return;
+
+        
+        var lexer = new CalculatorLexer(new AntlrInputStream(expression));
+        var tokens = lexer.GetAllTokens();
+
+        foreach (var token in tokens)
         {
-            try
+            if (token.Type == CalculatorLexer.CELL_REF)
             {
-                if (string.IsNullOrWhiteSpace(expression))
-                    return 0;
+                string refId = token.Text; 
 
-                var inputStream = new Antlr4.Runtime.AntlrInputStream(expression);
-                var lexer = new CalculatorLexer(inputStream);
-                var tokens = new Antlr4.Runtime.CommonTokenStream(lexer);
-                var parser = new CalculatorParser(tokens);
-                var parseTree = parser.expression();
-
-                if (parser.NumberOfSyntaxErrors > 0)
+               
+                if (visited.Contains(refId))
                 {
-
-                    throw new ArgumentException("Невірний синтаксис виразу");
+                    throw new ArgumentException("Циклічне посилання");
                 }
 
+                
+                var newVisited = new HashSet<string>(visited);
+                newVisited.Add(refId);
 
-                var visitor = new CalculatorVisitor(table);
-                return visitor.Visit(parseTree);
-            }
-            catch (Exception ex)
-            {
+                
+                string refExpression = GetExpressionFromCellId(refId);
 
-                throw new ArgumentException("Помилка");
+                
+                CheckLoop(refExpression, newVisited);
             }
         }
+    }
 
+   
+    private string GetExpressionFromCellId(string cellId)
+    {
+        try
+        {
+            
+            int i = 0;
+            while (i < cellId.Length && char.IsLetter(cellId[i])) i++;
+            string colPart = cellId.Substring(0, i);
+            string rowPart = cellId.Substring(i);
 
+            int colIndex = 0;
+            foreach (char c in colPart) colIndex = colIndex * 26 + (c - 'A' + 1);
+            colIndex--;
+            int rowIndex = int.Parse(rowPart) - 1;
 
+            
+            if (rowIndex < 0 || rowIndex >= table.row || colIndex < 0 || colIndex >= table.column)
+                return "";
 
+            return table.GetCell(rowIndex, colIndex).Expression;
+        }
+        catch { return ""; }
+    }
 
+    public double EvaluateExpression(string expression)
+    {
+        try
+        {
+            var inputStream = new AntlrInputStream(expression);
+            var lexer = new CalculatorLexer(inputStream);
+            var tokens = new CommonTokenStream(lexer);
+            var parser = new CalculatorParser(tokens);
+
+           
+
+            var parseTree = parser.expression();
+
+            if (parser.NumberOfSyntaxErrors > 0)
+                throw new ArgumentException("Синтаксис");
+
+            var visitor = new CalculatorVisitor(table);
+            return visitor.Visit(parseTree);
+        }
+        catch
+        {
+            throw new ArgumentException("Помилка");
+        }
     }
 }
