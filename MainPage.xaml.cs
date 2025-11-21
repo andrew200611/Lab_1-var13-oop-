@@ -122,6 +122,7 @@ public partial class MainPage : ContentPage
                     var entry = sender as Entry;
                     var targetCell = table.GetCell(currentRow, currentCol);
                     targetCell.Expression = entry.Text;
+                    table.RecalculateAll();
                     UpdateSpreadsheetGrid();
                 };
                 Grid.SetRow(cellEntry, row);
@@ -142,57 +143,90 @@ public partial class MainPage : ContentPage
     }
     private void InfoButton_Clicked(object sender, EventArgs e)
     {
-        DisplayAlert("Інформація", $"Виконав Цаліков Андрій Володимирович\n Група К-24\n Варіант 13", "OK");
+        DisplayAlert("Інформація", "Виконав Цаліков Андрій Володимирович\n Група К-24\n Варіант 13", "OK");
     }
 
-    private void CloseButton_Clicked(object sender, EventArgs e)
+    private void DeleteRowButton_Clicked(object sender, EventArgs e)
     {
-        Application.Current.Quit();
+        if (table.row > 0)
+        {
+            table.DeleteRow();
+            table.RecalculateAll();
+            UpdateSpreadsheetGrid();
+        }
     }
 
-    private async void SaveButton_Clicked(object sender, EventArgs e)
+    private void DeleteColumnButton_Clicked(object sender, EventArgs e)
+    {
+        if (table.column > 0)
+        {
+            table.DeleteColumn();
+            table.RecalculateAll();
+            UpdateSpreadsheetGrid();
+        }
+    }
+    private async void CloseButton_Clicked(object sender, EventArgs e)
+    {
+        bool answer = await DisplayAlert("Вихід", "Ви впевнені, що хочете вийти?", "Так", "Ні");
+        if (answer)
+        {
+            Application.Current.Quit();
+        }
+    }
+    
+    private async Task<bool> SaveDataAsync()
     {
         try
         {
-            
             var data = new SpreadsheetData
             {
                 Rows = table.row,
                 Columns = table.column,
-                
                 Expressions = new string[table.row][]
             };
 
-           
             for (int r = 0; r < table.row; r++)
             {
-               
                 data.Expressions[r] = new string[table.column];
                 for (int c = 0; c < table.column; c++)
                 {
-                    
                     data.Expressions[r][c] = table.GetCell(r, c).Expression;
                 }
             }
 
-           
-            string jsonString = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            string jsonString = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
 
-            
-            using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(jsonString));
-            await CommunityToolkit.Maui.Storage.FileSaver.Default.SaveAsync("spreadsheet.json", stream, CancellationToken.None);
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
+            var result = await FileSaver.Default.SaveAsync("spreadsheet.json", stream, CancellationToken.None);
+
+            return result.IsSuccessful;
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Помилка", "Не вдалося зберегти файл: " , "OK");
+            await DisplayAlert("Помилка", "Не вдалося зберегти файл", "OK");
+            return false;
         }
+    }
+    private async void SaveButton_Clicked(object sender, EventArgs e)
+    {
+        await SaveDataAsync();
     }
 
     private async void OpenButton_Clicked(object sender, EventArgs e)
     {
         try
         {
-            
+            bool answer = await DisplayAlert("Вихід", "Хочете зберегти поточний файл?", "Так", "Ні");
+            if (answer)
+            {
+                await SaveDataAsync();
+            }
+            if (!answer)
+            {
+               
+                bool continueAnyway = await DisplayAlert("Увага", "Файл не було збережено. Все одно відкрити новий?", "Так", "Ні");
+                if (!continueAnyway) return;
+            }
             var result = await Microsoft.Maui.Storage.FilePicker.Default.PickAsync(new PickOptions
             {
                 PickerTitle = "Виберіть файл електронної таблиці",

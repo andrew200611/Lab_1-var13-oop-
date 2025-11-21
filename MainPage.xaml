@@ -10,6 +10,9 @@
             <HorizontalStackLayout Spacing="10">
                 <Button x:Name="AddRowButton" Text="Додати рядок" BackgroundColor="#008055" Clicked="AddRowButton_Clicked" />
                 <Button x:Name="AddColumnButton" Text="Додати стовпчик" BackgroundColor="#6E8000" Clicked="AddColumnButton_Clicked" />
+                <Button Text="Видалити Рядок" Clicked="DeleteRowButton_Clicked" BackgroundColor="DarkRed" TextColor="White"/>
+                <Button Text="Видалити Стовпчик" Clicked="DeleteColumnButton_Clicked" BackgroundColor="DarkRed" TextColor="White"/>
+                
                 <Button x:Name="InfoButton" Text="Інфо" BackgroundColor="Navy" Clicked="InfoButton_Clicked" />
                 <Button x:Name="SaveButton" Text="Зберегти" Clicked="SaveButton_Clicked" BackgroundColor="#005A9C" />
                 <Button x:Name="OpenButton" Text="Відкрити" Clicked="OpenButton_Clicked" BackgroundColor="#005A9C" />
